@@ -1,5 +1,5 @@
 {
-	"name": "tobias/default",
+	"name": "filip/wasp-gans",
 	"build": {
 		"context": "..",
 		"dockerfile": "../Dockerfile",

@@ -1,8 +1,8 @@
-FROM python:3.8
+FROM pytorch/pytorch:1.8.1-cuda11.1-cudnn8-devel
 
 RUN groupadd -r docker-user && useradd -r -m -s /bin/false -g docker-user docker-user
 
-RUN apt update && apt install -y less nano jq git
+RUN apt update && apt install -y less nano jq git wget
 
 COPY bash.bashrc /etc/bash.bashrc
 
