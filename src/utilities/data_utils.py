@@ -7,7 +7,6 @@ import torch
 from torch.utils.data.dataset import Dataset
 import os
 import torch.nn as nn
-import numpy as np
 
 
 class Normalize(nn.Module):
@@ -32,19 +31,14 @@ class Normalize(nn.Module):
         r"""
         Takes an input and normalises it
         """
-        if not torch.is_tensor(x):
-            x = torch.from_numpy(np.array(x)).permute(2, 0, 1)
         
-        return (x - 127.5) / 127.5
-        
-        # return self._standardize(x)
+        return self._standardize(x)
 
     def inverse_normalize(self, x):
         r"""
         Takes an input and de-normalises it
         """
-        return (x * 127.5) + 127.5
-        # return self._inverse_standardize(x)
+        return self._inverse_standardize(x)
 
     def _standardize(self, x):
 

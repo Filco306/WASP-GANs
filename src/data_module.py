@@ -85,6 +85,7 @@ class MyDataModule(pl.LightningDataModule):
             # transforms.RandomHorizontalFlip(),            
             transforms.Resize(self.hparams.image_resized),
             transforms.CenterCrop(self.hparams.image_resized),
+            transforms.ToTensor(),
             self.normalizer,
         ])
 

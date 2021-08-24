@@ -17,7 +17,7 @@ def create_hparams():
         ################################
         # Experiment Parameters        #
         ################################
-        run_name="TanhReturns",
+        run_name="MoreData",
         seed=1234,
         # Important placeholder vital to load and save model
         logger=None,
@@ -31,7 +31,7 @@ def create_hparams():
         # Data Parameters             #
         ################################
         num_workers=0,
-        batch_size=64,
+        batch_size=128,
 
         ################################
         # Optimization Hyperparameters #
