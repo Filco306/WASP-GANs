@@ -5,16 +5,18 @@ Contains PyTorch-Lightning's datamodule and dataloaders
 import torch
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
-from torchvision import datasets, transforms
-from torchvision import transforms
+from src.utilities.data_utils import Normalize
+from torchvision import transforms, datasets
+
 
 class Scale1Minus1(torch.nn.Module):
     def __init__(self):
         super().__init__()
-    
+
     def forward(self, x):
-        x = (x/ (254.0))*2 - 1
+        x = (x / (254.0))*2 - 1
         return x
+
 
 class Rescale(torch.nn.Module):
     def __init__(self, old_min, old_max, new_min, new_max):
@@ -25,7 +27,8 @@ class Rescale(torch.nn.Module):
         self.new_max = new_max
 
     def forward(self, x):
-        x = (x - self.old_min)/(self.old_max - self.old_min)*(self.new_max - self.new_min) + self.new_min
+        x = (x - self.old_min)/(self.old_max - self.old_min) * \
+            (self.new_max - self.new_min) + self.new_min
         return x
 
 
@@ -38,6 +41,9 @@ class MyDataModule(pl.LightningDataModule):
         """
         super().__init__()
         self.hparams.update(vars(hparams))
+
+        self.normalizer = Normalize(hparams.normalizing_values_mu, hparams.normalizing_values_sigma)
+
         # self.collate_fn = CustomCollate()
 
     def prepare_data(self):
@@ -51,7 +57,7 @@ class MyDataModule(pl.LightningDataModule):
     def setup(self, stage=None):
         r"""
         Set train, val and test dataset here
-        
+
         Args:
             stage (string, optional): fit, test based on plt.Trainer state. 
                                     Defaults to None.
@@ -71,15 +77,15 @@ class MyDataModule(pl.LightningDataModule):
 
         #     # Optionally...
         #     # self.dims = tuple(self.mnist_test[0][0].shape)
-        
+
         # raise NotImplementedError("Add your dataloaders first and remove this line")
 
         traintransform = transforms.Compose([
-            transforms.RandomRotation(self.hparams.training_random_rotation),
-            transforms.RandomHorizontalFlip(),
+            # transforms.RandomRotation(self.hparams.training_random_rotation),
+            # transforms.RandomHorizontalFlip(),            
             transforms.Resize(self.hparams.image_resized),
-            transforms.ToTensor(),
-            transforms.Normalize((0.4821, 0.4787, 0.4517), (0.3146, 0.3083, 0.3430))
+            transforms.CenterCrop(self.hparams.image_resized),
+            self.normalizer,
         ])
 
         # testtransform = transforms.Compose([
@@ -87,7 +93,7 @@ class MyDataModule(pl.LightningDataModule):
         #     transforms.ToTensor(),
         #     transforms.Normalize(self.hparams.normalizing_values_mu, self.hparams.normalizing_values_sigma)
         # ])
-                
+
         # self.train_data = CustomDataset()
         # self.val_data = CustomDataset()
         # self.test_data = CustomDataset()
@@ -117,7 +123,7 @@ class MyDataModule(pl.LightningDataModule):
     #     Returns:
     #         (torch.utils.data.DataLoader): Validation Dataloader
     #     """
-        
+
     #     return DataLoader(self.val_data, batch_size=self.hparams.batch_size, collate_fn=self.collate_fn,
     #                       num_workers=self.hparams.num_workers, pin_memory=True)
 

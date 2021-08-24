@@ -14,8 +14,7 @@ from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 
 from src.hparams import create_hparams
 from src.data_module import MyDataModule
-from src.training_model import MyTrainingModule
-from src.model.dcgan import DCGAN
+from src.training_model import DCGAN
 # from run_tests import run_tests
 
 if __name__ == '__main__':
@@ -29,12 +28,10 @@ if __name__ == '__main__':
 
     hparams = create_hparams()
 
-    
     seed_everything(hparams.seed)
 
     data_module = MyDataModule(hparams)
-    model = DCGAN(img_shape=(hparams.n_channels, *hparams.image_resized))
-
+    model = DCGAN(hparams, img_shape=(hparams.n_channels, *hparams.image_resized))
 
     # Callbacks
     checkpoint_callback = ModelCheckpoint(dirpath=hparams.checkpoint_path,
@@ -49,8 +46,8 @@ if __name__ == '__main__':
                          logger=logger,
                          log_every_n_steps=1,
                          flush_logs_every_n_steps=10,
-                         plugins=DDPPlugin(find_unused_parameters=True),
-                         accelerator='ddp',
+                         #  plugins=DDPPlugin(find_unused_parameters=True),
+                         #  accelerator='ddp',
                          check_val_every_n_epoch=hparams.check_val_every_n_epoch,
                          gradient_clip_val=hparams.grad_clip_thresh,
                          callbacks=[checkpoint_callback],

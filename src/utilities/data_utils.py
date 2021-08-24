@@ -4,55 +4,62 @@ Utilities for processing of Data
 """
 from typing import Any
 import torch
-from torchvision import datasets
 from torch.utils.data.dataset import Dataset
 import os
+import torch.nn as nn
+import numpy as np
 
-class CustomCollate:
+
+class Normalize(nn.Module):
     r"""
-    Override the __call__ method of this collate function
+    Normalize Module
+    ---
+    Responsible for normalization and denormalization of inputs
     """
 
-    def __init__(self):
-        super(CustomCollate, self).__init__()
-        
-    
-    def __call__(self, batch):
-        r"""
-        Make changes to the batch of input, useful for tokenizing/padding on the fly
-        Args:
-            batch (torch.Tensor): a batch of batch_len will come here from torch.util.Dataset
-        """
-        raise NotImplementedError("Collate function is not implemented")
-        
-        x = batch[0]
-        y = batch[1]
-        return x, y
-    
-    
-    
-class CustomDataset(Dataset):
-    def __init__(self, hparams, dataset, data_path ="../data/imgs"):
-        """Dataset class for torch
-        Args:
-            hparams (argparse.Namespace): hyperparmeters if needed for the dataset
-            dataset (Any): dataset to work on
-        """
-        self.hparams = hparams
-        self.dataset = dataset
-        self.data_path = data_path
-        self.imgs = os.listdir(data_path)
+    def __init__(self, mean: float, std: float):
+        super(Normalize, self).__init__()
 
-# datasets.ImageFolder(TRAIN_DATA_FOLDER, )
-    
-    def __getitem__(self, index):
-        """Return one item of the dataset
-        Args:
-            index (int): dataloader will fetch it batchwise, just write logic how to get one element
-        Returns:
-            Any: one element from the dataset
+        if not torch.is_tensor(mean):
+            mean = torch.tensor(mean)
+        if not torch.is_tensor(std):
+            std = torch.tensor(std)
+
+        self.register_buffer("mean", mean.unsqueeze(-1).unsqueeze(-1))
+        self.register_buffer("std", std.unsqueeze(-1).unsqueeze(-1))
+
+    def forward(self, x):
+        r"""
+        Takes an input and normalises it
         """
-        return self.dataset[index]
-    
-    def __len__(self):
-        return len(self.dataset)
+        if not torch.is_tensor(x):
+            x = torch.from_numpy(np.array(x)).permute(2, 0, 1)
+        
+        return (x - 127.5) / 127.5
+        
+        # return self._standardize(x)
+
+    def inverse_normalize(self, x):
+        r"""
+        Takes an input and de-normalises it
+        """
+        return (x * 127.5) + 127.5
+        # return self._inverse_standardize(x)
+
+    def _standardize(self, x):
+
+        if not torch.is_tensor(x):
+            x = torch.tensor(x)
+
+        x = x.sub(self.mean).div(self.std)
+        return x
+
+    def _inverse_standardize(self, x):
+        r"""
+        Takes an input and de-normalises it
+        """
+        if not torch.is_tensor(x):
+            x = torch.tensor([x])
+
+        x = x.mul(self.std).add(self.mean)
+        return x
